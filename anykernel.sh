@@ -15,7 +15,7 @@ device.name2=willow
 device.name3=
 device.name4=
 device.name5=
-supported.versions=8 - 11
+supported.versions=10 - 11
 supported.patchlevels=
 '; } # end properties
 
@@ -38,8 +38,5 @@ set_perm_recursive 0 0 750 750 $ramdisk/init* $ramdisk/sbin;
 
 ## AnyKernel install
 dump_boot;
-
-
 write_boot;
 ## end install
-

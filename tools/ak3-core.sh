@@ -155,7 +155,7 @@ unpack_ramdisk() {
   if [ -f ramdisk.cpio ]; then
     comp=$($bin/magiskboot decompress ramdisk.cpio 2>&1 | grep -v 'raw' | sed -n 's;.*\[\(.*\)\];\1;p');
   else
-    echo "No ramdisk found to unpack. But not aborting :)...";
+    abort "No ramdisk found to unpack. Aborting...";
   fi;
   if [ "$comp" ]; then
     mv -f ramdisk.cpio ramdisk.cpio.$comp;
@@ -173,7 +173,7 @@ unpack_ramdisk() {
   cd $ramdisk;
   EXTRACT_UNSAFE_SYMLINKS=1 cpio -d -F $split_img/ramdisk.cpio -i;
   if [ $? != 0 -o ! "$(ls)" ]; then
-    echo "Unpacking ramdisk failed. But not aborting :)...";
+    abort "Unpacking ramdisk failed. Aborting...";
   fi;
   if [ -d "$home/rdtmp" ]; then
     cp -af $home/rdtmp/* .;
@@ -224,7 +224,7 @@ repack_ramdisk() {
     fi;
   fi;
   if [ "$packfail" ]; then
-    echo "Repacking ramdisk failed. But not aborting :)...";
+    abort "Repacking ramdisk failed. Aborting...";
   fi;
 
   if [ -f "$bin/mkmtkhdr" -a -f "$split_img/boot.img-base" ]; then
@@ -391,6 +391,7 @@ flash_boot() {
   elif [ "$(wc -c < boot-new.img)" -gt "$(wc -c < boot.img)" ]; then
     abort "New image larger than boot partition. Aborting...";
   fi;
+  blockdev --setrw $block 2>/dev/null;
   if [ -f "$bin/flash_erase" -a -f "$bin/nandwrite" ]; then
     $bin/flash_erase $block 0 0;
     $bin/nandwrite -p $block boot-new.img;
@@ -422,6 +423,7 @@ flash_dtbo() {
     if [ ! -e "$dtboblock" ]; then
       abort "dtbo partition could not be found. Aborting...";
     fi;
+    blockdev --setrw $dtboblock 2>/dev/null;
     if [ -f "$bin/flash_erase" -a -f "$bin/nandwrite" ]; then
       $bin/flash_erase $dtboblock 0 0;
       $bin/nandwrite -p $dtboblock $dtbo;
@@ -753,7 +755,9 @@ setup_ak() {
       fi;
     ;;
   esac;
-  ui_print "$block";
+  if [ ! "$no_block_display" ]; then
+    ui_print "$block";
+  fi;
 }
 ###
 
